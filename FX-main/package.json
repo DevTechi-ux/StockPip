@@ -1,0 +1,43 @@
+{
+  "name": " StockPip-forex-platform",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Complete Forex Trading Platform with Admin Dashboard, User App, and Marketing Website",
+  "scripts": {
+    "dev:website": "cd websiteapp && npm run dev",
+    "dev:admin": "cd Admin-Dashboard_-Business-Control-Panel-codebase && npm run dev",
+    "dev:user": "cd forexuserapp && npm run dev",
+    "dev:websocket": "cd finalwebsocket && npm run dev",
+    "dev:all": "concurrently \"npm run dev:website\" \"npm run dev:admin\" \"npm run dev:user\" \"npm run dev:websocket\"",
+    "build:website": "cd websiteapp && npm run build",
+    "build:admin": "cd Admin-Dashboard_-Business-Control-Panel-codebase && npm run build",
+    "build:user": "cd forexuserapp && npm run build",
+    "build:all": "npm run build:website && npm run build:admin && npm run build:user",
+    "install:all": "cd websiteapp && npm install --legacy-peer-deps && cd ../Admin-Dashboard_-Business-Control-Panel-codebase && npm install --legacy-peer-deps && cd ../forexuserapp && npm install --legacy-peer-deps && cd ../websocket-pack && npm install",
+    "start:website": "cd websiteapp && npm start",
+    "start:admin": "cd Admin-Dashboard_-Business-Control-Panel-codebase && npm start",
+    "start:user": "cd forexuserapp && npm start",
+    "start:websocket": "cd finalwebsocket && node standalone-websocket-metaapi.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop ecosystem.config.js",
+    "pm2:restart": "pm2 restart ecosystem.config.js",
+    "pm2:delete": "pm2 delete ecosystem.config.js",
+    "deploy": "bash deploy.sh"
+  },
+  "keywords": [
+    "forex",
+    "trading",
+    "platform",
+    "admin",
+    "dashboard",
+    "react",
+    "nextjs",
+    "mysql",
+    "websocket"
+  ],
+  "author": " StockPip",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

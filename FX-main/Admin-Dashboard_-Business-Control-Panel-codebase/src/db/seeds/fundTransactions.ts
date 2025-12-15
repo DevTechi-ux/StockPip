@@ -1,0 +1,135 @@
+import { db } from '@/db';
+import { fundTransactions } from '@/db/schema';
+
+async function main() {
+    const sampleTransactions = [
+        {
+            accountId: 1,
+            transactionType: 'deposit',
+            amount: 100000,
+            fromAccountId: null,
+            toAccountId: null,
+            description: 'Initial deposit to Operating Account',
+            referenceId: 'DEP-2024-001',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-01-15T09:00:00Z').toISOString(),
+        },
+        {
+            accountId: 2,
+            transactionType: 'deposit',
+            amount: 500000,
+            fromAccountId: null,
+            toAccountId: null,
+            description: 'Initial deposit to Reserve Account',
+            referenceId: 'DEP-2024-002',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-01-15T09:30:00Z').toISOString(),
+        },
+        {
+            accountId: 3,
+            transactionType: 'deposit',
+            amount: 25000,
+            fromAccountId: null,
+            toAccountId: null,
+            description: 'Initial deposit to Commission Account',
+            referenceId: 'DEP-2024-003',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-01-15T10:00:00Z').toISOString(),
+        },
+        {
+            accountId: 3,
+            transactionType: 'fee_collection',
+            amount: 5000,
+            fromAccountId: null,
+            toAccountId: 3,
+            description: 'Trading fees for March',
+            referenceId: 'FEE-2024-001',
+            adminId: 2,
+            status: 'completed',
+            createdAt: new Date('2024-03-01T14:00:00Z').toISOString(),
+        },
+        {
+            accountId: 3,
+            transactionType: 'commission',
+            amount: 3000,
+            fromAccountId: null,
+            toAccountId: 3,
+            description: 'Referral commissions',
+            referenceId: 'COM-2024-001',
+            adminId: 2,
+            status: 'completed',
+            createdAt: new Date('2024-03-05T11:00:00Z').toISOString(),
+        },
+        {
+            accountId: 1,
+            transactionType: 'withdrawal',
+            amount: 20000,
+            fromAccountId: 1,
+            toAccountId: null,
+            description: 'Office rent payment',
+            referenceId: 'WD-2024-001',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-03-10T10:00:00Z').toISOString(),
+        },
+        {
+            accountId: 1,
+            transactionType: 'deposit',
+            amount: 400000,
+            fromAccountId: null,
+            toAccountId: null,
+            description: 'Capital injection to Operating Account',
+            referenceId: 'DEP-2024-004',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-04-01T09:00:00Z').toISOString(),
+        },
+        {
+            accountId: 2,
+            transactionType: 'deposit',
+            amount: 500000,
+            fromAccountId: null,
+            toAccountId: null,
+            description: 'Additional reserve funding',
+            referenceId: 'DEP-2024-005',
+            adminId: 1,
+            status: 'completed',
+            createdAt: new Date('2024-04-01T09:30:00Z').toISOString(),
+        },
+        {
+            accountId: 3,
+            transactionType: 'fee_collection',
+            amount: 15000,
+            fromAccountId: null,
+            toAccountId: 3,
+            description: 'Trading and platform fees for April',
+            referenceId: 'FEE-2024-002',
+            adminId: 2,
+            status: 'completed',
+            createdAt: new Date('2024-04-15T14:00:00Z').toISOString(),
+        },
+        {
+            accountId: 3,
+            transactionType: 'commission',
+            amount: 7000,
+            fromAccountId: null,
+            toAccountId: 3,
+            description: 'Partner and referral commissions',
+            referenceId: 'COM-2024-002',
+            adminId: 2,
+            status: 'completed',
+            createdAt: new Date('2024-04-20T11:00:00Z').toISOString(),
+        }
+    ];
+
+    await db.insert(fundTransactions).values(sampleTransactions);
+    
+    console.log('✅ Fund transactions seeder completed successfully');
+}
+
+main().catch((error) => {
+    console.error('❌ Seeder failed:', error);
+});

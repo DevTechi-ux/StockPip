@@ -1,0 +1,31 @@
+{
+  "name": "standalone-websocket-metaapi",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Clean standalone WebSocket + MetaAPI service for real-time trading data",
+  "main": "standalone-websocket-metaapi.js",
+  "scripts": {
+    "start": "node standalone-websocket-metaapi.js",
+    "dev": "nodemon standalone-websocket-metaapi.js",
+    "mock": "node simple-websocket-mock.js",
+    "dev:mock": "nodemon simple-websocket-mock.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "metaapi.cloud-sdk": "^21.1.0",
+    "socket.io": "^4.8.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "websocket",
+    "metaapi",
+    "forex",
+    "trading",
+    "realtime"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

@@ -1,0 +1,115 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    /* Light mode - Grey and Sky Blue theme */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 10%;
+
+    --primary: 200 98% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 94%;
+    --secondary-foreground: 215 25% 10%;
+
+    --muted: 210 40% 94%;
+    --muted-foreground: 215 13% 30%;
+
+    --accent: 200 98% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 27% 92%;
+    --input: 215 27% 92%;
+    --ring: 200 98% 39%;
+
+    --buy: 142 76% 36%;
+    --buy-foreground: 0 0% 100%;
+    --sell: 0 84% 60%;
+    --sell-foreground: 0 0% 100%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 210 30% 96%;
+    --sidebar-foreground: 215 25% 10%;
+    --sidebar-primary: 200 98% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 200 98% 39%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 27% 92%;
+    --sidebar-ring: 200 98% 39%;
+  }
+
+  .dark {
+    /* Dark mode - Black with Ash/Gray accents */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 0 0% 60%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 0 0% 5%;
+    --secondary-foreground: 0 0% 85%;
+
+    --muted: 0 0% 5%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 0 0% 60%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 10%;
+    --input: 0 0% 8%;
+    --ring: 0 0% 60%;
+
+    --buy: 142 76% 36%;
+    --buy-foreground: 0 0% 100%;
+    --sell: 0 84% 60%;
+    --sell-foreground: 0 0% 100%;
+
+    --sidebar-background: 0 0% 2%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 0 0% 60%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 60%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 0 0% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
