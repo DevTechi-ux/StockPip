@@ -7,13 +7,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
   { to: "/userdashboard", icon: LineChart, label: "Chart" },
-  { to: "/portfolio", icon: Wallet, label: "Portfolio" },
-  { to: "/api", icon: Plug, label: "API" },
-  { to: "/wallet", icon: Banknote, label: "Wallet" },
-  { to: "/ib", icon: Award, label: "IB" },
-  { to: "/support", icon: MessageSquare, label: "Support" },
-  { to: "/profile", icon: User, label: "Profile" },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/userdashboard/portfolio", icon: Wallet, label: "Portfolio" },
+  { to: "/userdashboard/api", icon: Plug, label: "API" },
+  { to: "/userdashboard/wallet", icon: Banknote, label: "Wallet" },
+  { to: "/userdashboard/ib", icon: Award, label: "IB" },
+  { to: "/userdashboard/support", icon: MessageSquare, label: "Support" },
+  { to: "/userdashboard/profile", icon: User, label: "Profile" },
+  { to: "/userdashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 export default function Header() {

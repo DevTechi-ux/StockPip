@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import MainPage from "./pages/MainPage";
+import WebsiteLanding from "./pages/WebsiteLanding";
 import NotFound from "./pages/NotFound";
 import Placeholder from "./pages/Placeholder";
 import Markets from "./pages/Markets";
@@ -58,7 +59,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MainPage />} />
+          <Route path="/" element={<WebsiteLanding />} />
           <Route
             path="/userdashboard"
             element={
@@ -84,7 +85,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/markets"
+            element={
+              <ProtectedRoute>
+                <Markets />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/portfolio"
+            element={
+              <ProtectedRoute>
+                <Portfolio />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/portfolio"
             element={
               <ProtectedRoute>
                 <Portfolio />
@@ -100,7 +117,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/strategy"
+            element={
+              <ProtectedRoute>
+                <Strategy />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/api"
+            element={
+              <ProtectedRoute>
+                <Api />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/api"
             element={
               <ProtectedRoute>
                 <Api />
@@ -116,7 +149,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/wallet"
+            element={
+              <ProtectedRoute>
+                <Wallet />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/ib"
+            element={
+              <ProtectedRoute>
+                <Ib />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/ib"
             element={
               <ProtectedRoute>
                 <Ib />
@@ -132,7 +181,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings"
+            element={
+              <ProtectedRoute>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/settings"
             element={
               <ProtectedRoute>
                 <SettingsPage />
@@ -148,7 +213,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/support"
+            element={
+              <ProtectedRoute>
+                <Support />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/watchlist"
+            element={
+              <ProtectedRoute>
+                <Watchlist />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/watchlist"
             element={
               <ProtectedRoute>
                 <Watchlist />
@@ -164,7 +245,23 @@ const App = () => (
             }
           />
           <Route
+            path="/userdashboard/positions"
+            element={
+              <ProtectedRoute>
+                <Positions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/history"
+            element={
+              <ProtectedRoute>
+                <History />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/userdashboard/history"
             element={
               <ProtectedRoute>
                 <History />

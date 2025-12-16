@@ -3,15 +3,15 @@ import { NavLink } from "react-router-dom";
 
 const items = [
   { to: "/userdashboard", icon: LineChart, label: "Chart" },
-  { to: "/portfolio", icon: Wallet, label: "Portfolio" },
-  { to: "/api", icon: Plug, label: "API" },
-  { to: "/wallet", icon: Banknote, label: "Wallet" },
-  { to: "/mam", icon: Layers3, label: "MAM" },
-  { to: "/pamm", icon: Layers3, label: "PAMM" },
-  { to: "/learn", icon: BookOpen, label: "Learn" },
-  { to: "/support", icon: MessageSquare, label: "Support" },
-  { to: "/profile", icon: User, label: "Profile" },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/userdashboard/portfolio", icon: Wallet, label: "Portfolio" },
+  { to: "/userdashboard/api", icon: Plug, label: "API" },
+  { to: "/userdashboard/wallet", icon: Banknote, label: "Wallet" },
+  { to: "/userdashboard/mam", icon: Layers3, label: "MAM" },
+  { to: "/userdashboard/pamm", icon: Layers3, label: "PAMM" },
+  { to: "/userdashboard/learn", icon: BookOpen, label: "Learn" },
+  { to: "/userdashboard/support", icon: MessageSquare, label: "Support" },
+  { to: "/userdashboard/profile", icon: User, label: "Profile" },
+  { to: "/userdashboard/settings", icon: Settings, label: "Settings" },
 ];
 
 export default function SideNav() {
