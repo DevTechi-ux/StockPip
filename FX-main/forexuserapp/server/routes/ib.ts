@@ -243,7 +243,21 @@ export const getIbDashboard: RequestHandler = async (req, res) => {
     );
 
     if (!ibResult.success || ibResult.data.length === 0) {
-      return res.status(404).json({ error: "IB account not found" });
+      // Instead of 404, return an empty dashboard shape so the client can
+      // decide what to render without treating it as an error.
+      return res.json({
+        ib: null,
+        stats: {
+          total_clients: 0,
+          total_commissions: 0,
+          pending_earnings: 0,
+          total_paid: 0,
+          total_sub_ibs: 0
+        },
+        recent_commissions: [],
+        recent_referrals: [],
+        status: 'not_ib'
+      });
     }
 
     const ib = ibResult.data[0];
@@ -280,11 +294,16 @@ export const getIbDashboard: RequestHandler = async (req, res) => {
 
     // Get recent referrals
     const referralsResult = await executeQuery(`
-      SELECT ir.*, u.first_name, u.last_name, u.email
+      SELECT 
+        ir.*, 
+        ir.created_at AS registered_at,
+        u.first_name, 
+        u.last_name, 
+        u.email
       FROM ib_referrals ir
       LEFT JOIN users u ON ir.referred_user_id = u.id
       WHERE ir.ib_id = ?
-      ORDER BY ir.registered_at DESC
+      ORDER BY ir.created_at DESC
       LIMIT 20
     `, [ib.id]);
 

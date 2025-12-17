@@ -96,6 +96,12 @@ export default function Ib() {
 
       if (response.ok) {
         const data = await response.json();
+        // If user is not an IB yet, treat as no dashboard
+        if (!data?.ib) {
+          prevStatusRef.current = null;
+          setDashboard(null);
+          return;
+        }
         const newStatus = data?.ib?.status;
         // notify if status changed to approved
         if (newStatus === 'approved' && prevStatusRef.current !== 'approved') {
@@ -291,6 +297,43 @@ export default function Ib() {
               <Plus className="h-4 w-4 mr-2" />
               Apply to Become an IB
             </Button>
+
+            {/* Apply Dialog (needs to be mounted even in non-IB view) */}
+            <Dialog open={isApplyDialogOpen} onOpenChange={setIsApplyDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Apply for IB Account</DialogTitle>
+                  <DialogDescription>Get your referral link and start earning commissions</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ib_name">IB Name *</Label>
+                    <Input
+                      id="ib_name"
+                      placeholder="e.g., Your Company Name"
+                      value={applyForm.ib_name}
+                      onChange={(e) => setApplyForm({ ...applyForm, ib_name: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="parent_referral_code">Parent IB Code (Optional)</Label>
+                    <Input
+                      id="parent_referral_code"
+                      placeholder="If you have an IB referral code"
+                      value={applyForm.parent_referral_code}
+                      onChange={(e) => setApplyForm({ ...applyForm, parent_referral_code: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">Enter if you were referred by an existing IB</p>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 mt-6">
+                  <Button variant="outline" onClick={() => setIsApplyDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={handleApply} disabled={loading}>
+                    {loading ? "Submitting..." : "Submit Application"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>
