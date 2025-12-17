@@ -52,10 +52,38 @@ export default function Ib() {
     withdrawal_method: "BANK_TRANSFER",
     bank_details: ""
   });
+  const [minWithdrawal, setMinWithdrawal] = React.useState<number>(50);
+  const prevStatusRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     checkIbStatus();
+    // fetch settings
+    (async () => {
+      try {
+        const res = await fetch('/api/ib/settings');
+        if (!res.ok) return;
+        const data = await res.json();
+        const v = data?.settings?.min_withdrawal;
+        if (v) setMinWithdrawal(parseFloat(v));
+      } catch (e) {
+        // ignore
+      }
+    })();
   }, []);
+
+  // Poll for approval when user has a pending IB application
+  React.useEffect(() => {
+    let timer: number | undefined;
+    if (dashboard && dashboard.ib && dashboard.ib.status === 'pending') {
+      // poll every 7 seconds
+      timer = window.setInterval(() => {
+        checkIbStatus();
+      }, 7000) as unknown as number;
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [dashboard?.ib?.status]);
 
   const checkIbStatus = async () => {
     try {
@@ -68,8 +96,15 @@ export default function Ib() {
 
       if (response.ok) {
         const data = await response.json();
+        const newStatus = data?.ib?.status;
+        // notify if status changed to approved
+        if (newStatus === 'approved' && prevStatusRef.current !== 'approved') {
+          toast.success('Your IB account has been approved!');
+        }
+        prevStatusRef.current = newStatus || null;
         setDashboard(data);
       } else if (response.status === 404) {
+        prevStatusRef.current = null;
         setDashboard(null); // Not an IB yet
       }
     } catch (error) {
@@ -127,6 +162,17 @@ export default function Ib() {
       return;
     }
 
+    const amountNum = parseFloat(withdrawForm.amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast.error('Enter a valid amount');
+      return;
+    }
+
+    if (amountNum < (minWithdrawal || 50)) {
+      toast.error(`Minimum withdrawal is $${minWithdrawal}`);
+      return;
+    }
+
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
@@ -142,7 +188,7 @@ export default function Ib() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          amount: parseFloat(withdrawForm.amount),
+            amount: amountNum,
           withdrawal_method: withdrawForm.withdrawal_method,
           bank_details: JSON.stringify({ details: withdrawForm.bank_details })
         })
@@ -241,47 +287,10 @@ export default function Ib() {
               </CardContent>
             </Card>
 
-            <Dialog open={isApplyDialogOpen} onOpenChange={setIsApplyDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="lg" className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Apply to Become an IB
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Apply for IB Account</DialogTitle>
-                  <DialogDescription>Get your referral link and start earning commissions</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ib_name">IB Name *</Label>
-                    <Input
-                      id="ib_name"
-                      placeholder="e.g., Your Company Name"
-                      value={applyForm.ib_name}
-                      onChange={(e) => setApplyForm({ ...applyForm, ib_name: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="parent_referral_code">Parent IB Code (Optional)</Label>
-                    <Input
-                      id="parent_referral_code"
-                      placeholder="If you have an IB referral code"
-                      value={applyForm.parent_referral_code}
-                      onChange={(e) => setApplyForm({ ...applyForm, parent_referral_code: e.target.value })}
-                    />
-                    <p className="text-xs text-muted-foreground">Enter if you were referred by an existing IB</p>
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2 mt-6">
-                  <Button variant="outline" onClick={() => setIsApplyDialogOpen(false)}>Cancel</Button>
-                  <Button onClick={handleApply} disabled={loading}>
-                    {loading ? "Submitting..." : "Submit Application"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <Button size="lg" className="w-full" onClick={() => setIsApplyDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Apply to Become an IB
+            </Button>
           </div>
         </div>
       </div>
@@ -305,224 +314,299 @@ export default function Ib() {
                 Withdraw
               </Button>
             )}
+            {(ib.status === 'rejected' || ib.status === 'suspended') && (
+              <Button onClick={() => {
+                setApplyForm({ ib_name: ib.ib_name || '', parent_referral_code: '' });
+                setIsApplyDialogOpen(true);
+              }}>
+                Reapply
+              </Button>
+            )}
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Earnings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600 flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                ${stats.total_paid || 0}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Pending: ${stats.pending_earnings || 0}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Clients Referred</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                {stats.total_clients || 0}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Commission Rate</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold flex items-center gap-2">
-                <Award className="h-5 w-5" />
-                {ib.commission_rate} {ib.commission_type === 'per_lot' ? '/lot' : '%'}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Commissions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                {stats.total_commissions || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Show admin remark when rejected or suspended */}
+        {(ib.status === 'rejected' || ib.status === 'suspended') && (
+          <div className="mb-4 rounded-md border border-destructive/50 bg-destructive/5 p-4">
+            <div className="font-semibold">Admin remark:</div>
+            <div className="text-sm text-muted-foreground">{(ib as any).admin_notes || 'No remark provided.'}</div>
+          </div>
+        )}
 
-        <Tabs defaultValue="referral" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
-            <TabsTrigger value="referral">Referral</TabsTrigger>
-            <TabsTrigger value="commissions">Commissions</TabsTrigger>
-            <TabsTrigger value="clients">Clients</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-          </TabsList>
+        {ib.status === 'pending' && (
+          <Card className="max-w-xl mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 animate-spin" />
+                Application Pending
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Your application to become an Introducing Broker is currently under review by our team.
+                You will be notified once it's approved. This usually takes 1-2 business days.
+              </p>
+              <div className="mt-4 p-4 rounded-md bg-muted/50 border border-border">
+                <p className="font-semibold text-sm">IB Name: <span className="font-normal">{ib.ib_name}</span></p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Referral Link Tab */}
-          <TabsContent value="referral" className="space-y-4">
+        {ib.status === 'approved' && (<>
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
             <Card>
-              <CardHeader>
-                <CardTitle>Your Referral Link</CardTitle>
-                <CardDescription>Share this link with traders to earn commissions on their trades</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Earnings</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Referral Code</Label>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-muted px-4 py-3 rounded-md font-mono text-sm">
-                      {ib.referral_code}
-                    </code>
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(ib.referral_code);
-                        toast.success("Code copied!");
-                      }}
-                    >
-                      {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600 flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  ${stats.total_paid || 0}
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Complete Referral Link</Label>
-                  <div className="flex items-center gap-2">
-                    <code className="flex-1 bg-muted px-4 py-3 rounded-md font-mono text-xs truncate">
-                      {window.location.origin}/register?ref={ib.referral_code}
-                    </code>
-                    <Button size="sm" onClick={copyReferralLink}>
-                      {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="rounded-md border border-border bg-primary/10 p-4">
-                  <p className="text-sm font-semibold mb-2">How it works:</p>
-                  <ul className="space-y-1 text-sm text-muted-foreground">
-                    <li>1. Share your referral link with potential traders</li>
-                    <li>2. They register and start trading</li>
-                    <li>3. You earn commission on every trade they make</li>
-                    <li>4. Withdraw your earnings anytime</li>
-                  </ul>
+                <p className="text-xs text-muted-foreground mt-1">Pending: ${stats.pending_earnings || 0}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Clients Referred</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  {stats.total_clients || 0}
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Commissions Tab */}
-          <TabsContent value="commissions" className="space-y-4">
             <Card>
-              <CardHeader>
-                <CardTitle>Commission History</CardTitle>
-                <CardDescription>All your earned commissions</CardDescription>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Commission Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Lots</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dashboard.recent_commissions.length === 0 ? (
+                <div className="text-2xl font-bold flex items-center gap-2">
+                  <Award className="h-5 w-5" />
+                  {ib.commission_rate} {ib.commission_type === 'per_lot' ? '/lot' : '%'}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Commissions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  {stats.total_commissions || 0}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Tabs defaultValue="referral" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2">
+              <TabsTrigger value="referral">Referral</TabsTrigger>
+              <TabsTrigger value="commissions">Commissions</TabsTrigger>
+              <TabsTrigger value="clients">Clients</TabsTrigger>
+              <TabsTrigger value="stats">Statistics</TabsTrigger>
+            </TabsList>
+
+            {/* Referral Link Tab */}
+            <TabsContent value="referral" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Your Referral Link</CardTitle>
+                  <CardDescription>Share this link with traders to earn commissions on their trades</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Referral Code</Label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-muted px-4 py-3 rounded-md font-mono text-sm">
+                        {ib.referral_code}
+                      </code>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(ib.referral_code);
+                          toast.success("Code copied!");
+                        }}
+                      >
+                        {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Complete Referral Link</Label>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-muted px-4 py-3 rounded-md font-mono text-xs truncate">
+                        {window.location.origin}/register?ref={ib.referral_code}
+                      </code>
+                      <Button size="sm" onClick={copyReferralLink}>
+                        {copied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-primary/10 p-4">
+                    <p className="text-sm font-semibold mb-2">How it works:</p>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>1. Share your referral link with potential traders</li>
+                      <li>2. They register and start trading</li>
+                      <li>3. You earn commission on every trade they make</li>
+                      <li>4. Withdraw your earnings anytime</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Commissions Tab */}
+            <TabsContent value="commissions" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Commission History</CardTitle>
+                  <CardDescription>All your earned commissions</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            No commissions yet
-                          </TableCell>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Lots</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Status</TableHead>
                         </TableRow>
-                      ) : (
-                        dashboard.recent_commissions.map((commission) => (
-                          <TableRow key={commission.id}>
-                            <TableCell>{new Date(commission.created_at).toLocaleDateString()}</TableCell>
-                            <TableCell>{commission.first_name} {commission.last_name}</TableCell>
-                            <TableCell>{commission.lot_size}</TableCell>
-                            <TableCell className="font-semibold text-green-600">
-                              ${commission.commission_amount}
-                            </TableCell>
-                            <TableCell>
-                              {commission.status === 'paid' && <Badge className="bg-green-500">Paid</Badge>}
-                              {commission.status === 'pending' && <Badge variant="secondary">Pending</Badge>}
+                      </TableHeader>
+                      <TableBody>
+                        {dashboard.recent_commissions.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                              No commissions yet
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                        ) : (
+                          dashboard.recent_commissions.map((commission) => (
+                            <TableRow key={commission.id}>
+                              <TableCell>{new Date(commission.created_at).toLocaleDateString()}</TableCell>
+                              <TableCell>{commission.first_name} {commission.last_name}</TableCell>
+                              <TableCell>{commission.lot_size}</TableCell>
+                              <TableCell className="font-semibold text-green-600">
+                                ${commission.commission_amount}
+                              </TableCell>
+                              <TableCell>
+                                {commission.status === 'paid' && <Badge className="bg-green-500">Paid</Badge>}
+                                {commission.status === 'pending' && <Badge variant="secondary">Pending</Badge>}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Clients Tab */}
-          <TabsContent value="clients" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Referred Clients</CardTitle>
-                <CardDescription>People who registered using your referral link</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Client</TableHead>
-                        <TableHead>Total Trades</TableHead>
-                        <TableHead>Total Lots</TableHead>
-                        <TableHead>Total Commission</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {dashboard.recent_referrals.length === 0 ? (
+            {/* Clients Tab */}
+            <TabsContent value="clients" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Referred Clients</CardTitle>
+                  <CardDescription>People who registered using your referral link</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            No clients yet
-                          </TableCell>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Client</TableHead>
+                          <TableHead>Total Trades</TableHead>
+                          <TableHead>Total Lots</TableHead>
+                          <TableHead>Total Commission</TableHead>
                         </TableRow>
-                      ) : (
-                        dashboard.recent_referrals.map((referral) => (
-                          <TableRow key={referral.id}>
-                            <TableCell>{new Date(referral.registered_at).toLocaleDateString()}</TableCell>
-                            <TableCell>{referral.first_name} {referral.last_name}</TableCell>
-                            <TableCell>{referral.total_trades || 0}</TableCell>
-                            <TableCell>{referral.total_lots || 0}</TableCell>
-                            <TableCell className="font-semibold text-green-600">
-                              ${referral.total_commission || 0}
+                      </TableHeader>
+                      <TableBody>
+                        {dashboard.recent_referrals.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                              No clients yet
                             </TableCell>
                           </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                        ) : (
+                          dashboard.recent_referrals.map((referral) => (
+                            <TableRow key={referral.id}>
+                              <TableCell>{new Date(referral.registered_at).toLocaleDateString()}</TableCell>
+                              <TableCell>{referral.first_name} {referral.last_name}</TableCell>
+                              <TableCell>{referral.total_trades || 0}</TableCell>
+                              <TableCell>{referral.total_lots || 0}</TableCell>
+                              <TableCell className="font-semibold text-green-600">
+                                ${referral.total_commission || 0}
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Statistics Tab */}
-          <TabsContent value="stats" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Statistics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Detailed analytics coming soon...</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+            {/* Statistics Tab */}
+            <TabsContent value="stats" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Performance Statistics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Detailed analytics coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </>)}
+
+        {/* Apply Dialog */}
+        <Dialog open={isApplyDialogOpen} onOpenChange={setIsApplyDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Apply for IB Account</DialogTitle>
+              <DialogDescription>Get your referral link and start earning commissions</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ib_name">IB Name *</Label>
+                <Input
+                  id="ib_name"
+                  placeholder="e.g., Your Company Name"
+                  value={applyForm.ib_name}
+                  onChange={(e) => setApplyForm({ ...applyForm, ib_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="parent_referral_code">Parent IB Code (Optional)</Label>
+                <Input
+                  id="parent_referral_code"
+                  placeholder="If you have an IB referral code"
+                  value={applyForm.parent_referral_code}
+                  onChange={(e) => setApplyForm({ ...applyForm, parent_referral_code: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">Enter if you were referred by an existing IB</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button variant="outline" onClick={() => setIsApplyDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleApply} disabled={loading}>
+                {loading ? "Submitting..." : "Submit Application"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Withdraw Dialog */}
         <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
@@ -536,14 +620,14 @@ export default function Ib() {
                 <Label htmlFor="withdraw_amount">Amount (USD) *</Label>
                 <Input
                   id="withdraw_amount"
-                  type="number"
-                  min="50"
-                  max={stats.pending_earnings}
+                    type="number"
+                    min={minWithdrawal}
+                    max={stats.pending_earnings}
                   value={withdrawForm.amount}
                   onChange={(e) => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Available: ${stats.pending_earnings || 0}
+                    Minimum: ${minWithdrawal} • Available: ${stats.pending_earnings || 0}
                 </p>
               </div>
               <div className="space-y-2">

@@ -29,6 +29,17 @@ import {
   getUserTransactions
 } from "./routes/admin";
 import { getUserTradingAccount, getUserPositions } from "./database";
+import {
+  getAllIbAccounts,
+  updateIbAccountStatus,
+  getIbWithdrawals,
+  processIbWithdrawal,
+  applyToBeIb,
+  getIbDashboard,
+  requestIbWithdrawal,
+  getIbCommissions
+} from "./routes/ib";
+import { getIbSettings } from "./routes/ib";
 
 export function createServer() {
   const app = express();
@@ -168,6 +179,19 @@ app.put("/api/admin/fund-requests/:requestId", updateFundRequest);
 app.put("/api/admin/users/:userId/ban", banUser);
 app.get("/api/admin/mam-pamm-accounts", getMamPammAccounts);
 app.get("/api/admin/trading-positions", getTradingPositions);
+
+// IB admin management
+app.get("/api/admin/ib-accounts", verifyToken, getAllIbAccounts);
+app.put("/api/admin/ib-accounts/:ibId/status", verifyToken, updateIbAccountStatus);
+app.get("/api/admin/ib-withdrawals", verifyToken, getIbWithdrawals);
+app.put("/api/admin/ib-withdrawals/:withdrawalId", verifyToken, processIbWithdrawal);
+
+// IB user routes
+app.post('/api/ib/apply', verifyToken, applyToBeIb);
+app.get('/api/ib/dashboard', verifyToken, getIbDashboard);
+app.post('/api/ib/withdraw', verifyToken, requestIbWithdrawal);
+app.get('/api/ib/commissions', verifyToken, getIbCommissions);
+app.get('/api/ib/settings', getIbSettings);
 
 // Admin CRUD operations
 app.post("/api/admin/users", createUser);

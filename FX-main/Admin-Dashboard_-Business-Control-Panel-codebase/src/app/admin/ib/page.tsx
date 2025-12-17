@@ -112,7 +112,7 @@ export default function IbManagementPage() {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin/ib-accounts/${selectedIb.id}/status`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -144,8 +144,8 @@ export default function IbManagementPage() {
 
     try {
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin/ib-withdrawals/${selectedWithdrawal.id}/process`, {
-        method: 'POST',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/admin/ib-withdrawals/${selectedWithdrawal.id}`, {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -382,7 +382,10 @@ export default function IbManagementPage() {
               <CardContent>
                 <div className="text-2xl font-bold flex items-center gap-2 text-green-600">
                   <DollarSign className="h-5 w-5" />
-                  ${ibAccounts.reduce((sum, ib) => sum + (ib.total_paid || 0), 0).toFixed(2)}
+                  ${(() => {
+                    const totalPaid = ibAccounts.reduce((sum, ib) => sum + (Number(ib.total_paid) || 0), 0);
+                    return totalPaid.toFixed(2);
+                  })()}
                 </div>
               </CardContent>
             </Card>

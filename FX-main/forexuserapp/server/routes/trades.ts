@@ -2,6 +2,9 @@ import { RequestHandler } from "express";
 import { executeQuery } from "../database";
 import crypto from "crypto";
 
+// Commission calculation will be triggered after a close
+const { calculateIbCommission } = require('./ib');
+
 // Close a position and save to database
 export const closePosition: RequestHandler = async (req, res) => {
   try {
@@ -104,6 +107,22 @@ export const closePosition: RequestHandler = async (req, res) => {
           `Position closed: ${symbol} ${side} - PNL: $${pnl.toFixed(2)} - Broker Fee: $${brokerCharge.toFixed(2)}`
         ]
       );
+
+        // Fire-and-forget: calculate IB commission for this closed position
+        try {
+          const mockReq: any = { body: { positionId: historyId, clientId: userId, lotSize: lot, profit: pnl, spread: brokerCharge } };
+          const mockRes: any = { json: () => {}, status: () => ({ json: () => {} }) };
+          // call asynchronously
+          setImmediate(async () => {
+            try {
+              await calculateIbCommission(mockReq, mockRes);
+            } catch (e) {
+              console.error('Error calculating IB commission (background):', e);
+            }
+          });
+        } catch (e) {
+          console.error('Failed to schedule IB commission calculation:', e);
+        }
     }
 
     res.json({ success: true, message: "Position closed and saved" });

@@ -22,6 +22,7 @@ import Register from "./pages/Register";
 import Portfolio from "./pages/Portfolio";
 import Support from "./pages/Support";
 import Ib from "./pages/Ib";
+import IbAdmin from "./pages/admin/IbAdmin";
 import Watchlist from "./pages/Watchlist";
 import Positions from "./pages/Positions";
 import History from "./pages/History";
@@ -161,6 +162,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Ib />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ib"
+            element={
+              <ProtectedRoute>
+                <IbAdmin />
               </ProtectedRoute>
             }
           />

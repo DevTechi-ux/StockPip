@@ -36,6 +36,9 @@ export const updateIbAccountStatus: RequestHandler = async (req, res) => {
     const { ibId } = req.params;
     const { status, admin_notes, commission_rate, commission_type } = req.body;
 
+    // Debug logging to help trace why approve may not be working
+    console.log('[DEBUG] updateIbAccountStatus called', { ibId, status, admin_notes, commission_rate, commission_type, user: req.user });
+
     if (!['pending', 'approved', 'rejected', 'suspended'].includes(status)) {
       return res.status(400).json({ error: "Invalid status" });
     }
@@ -59,6 +62,8 @@ export const updateIbAccountStatus: RequestHandler = async (req, res) => {
       : [status, admin_notes || null, ibId];
 
     const result = await executeQuery(updateQuery, params);
+
+    console.log('[DEBUG] updateIbAccountStatus result', { params, result });
 
     if (result.success && result.data.affectedRows > 0) {
       res.json({ success: true, message: `IB account ${status} successfully` });
@@ -151,11 +156,26 @@ export const applyToBeIb: RequestHandler = async (req, res) => {
 
     // Check if already IB
     const existingResult = await executeQuery(
-      'SELECT id FROM ib_accounts WHERE user_id = ?',
+      'SELECT id, status FROM ib_accounts WHERE user_id = ?',
       [userId]
     );
 
     if (existingResult.success && existingResult.data.length > 0) {
+      const existing = existingResult.data[0];
+      // Allow re-apply if previous application was rejected or suspended
+      if (existing.status === 'rejected' || existing.status === 'suspended') {
+        // update existing record to pending with new name
+        const updateResult = await executeQuery(`
+          UPDATE ib_accounts SET ib_name = ?, status = 'pending', admin_notes = NULL, approved_at = NULL, approved_by = NULL, updated_at = NOW() WHERE id = ?
+        `, [ib_name, existing.id]);
+
+        if (updateResult.success) {
+          return res.status(200).json({ success: true, message: 'IB application resubmitted' });
+        } else {
+          return res.status(500).json({ error: 'Failed to resubmit application' });
+        }
+      }
+
       return res.status(400).json({ error: "You are already an IB" });
     }
 
@@ -367,6 +387,27 @@ export const getIbCommissions: RequestHandler = async (req, res) => {
   } catch (error) {
     console.error("Error fetching commissions:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Get IB public settings (min withdrawal, default commission, max levels)
+export const getIbSettings: RequestHandler = async (_req, res) => {
+  try {
+    const result = await executeQuery(
+      "SELECT setting_key, setting_value FROM ib_settings WHERE setting_key IN ('min_withdrawal','default_commission_rate','max_ib_levels')"
+    );
+
+    const settings: any = {};
+    if (result.success && result.data.length > 0) {
+      result.data.forEach((row: any) => {
+        settings[row.setting_key] = row.setting_value;
+      });
+    }
+
+    res.json({ success: true, settings });
+  } catch (error) {
+    console.error('Error fetching IB settings:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
