@@ -1,8 +1,9 @@
-import { Moon, Sun, Bell, Wallet, TrendingUp, LineChart, Plug, Banknote, MessageSquare, User, Settings, Award } from "lucide-react";
+import { Moon, Sun, Bell, Wallet, TrendingUp, LineChart, Plug, Banknote, MessageSquare, User, Settings, Award, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/state/app-store";
 import { useTradingStore } from "@/state/trading-store";
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
@@ -21,6 +22,7 @@ export default function Header() {
   const { mode } = useAppStore();
   const { wallet } = useTradingStore();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const root = document.documentElement;
@@ -97,6 +99,18 @@ export default function Header() {
           </>
         )}
         <div className="ml-0.5 md:ml-1 px-1.5 md:px-2 py-0.5 md:py-1 rounded border border-foreground text-[9px] md:text-xs font-bold">{mode.toUpperCase()}</div>
+        <button
+          aria-label="logout"
+          onClick={() => {
+            localStorage.removeItem("auth_token");
+            localStorage.removeItem("user");
+            navigate("/login");
+          }}
+          className="inline-flex h-7 w-7 md:h-9 md:w-9 items-center justify-center rounded-lg border hover:border-foreground transition-colors ml-2"
+          title="Logout"
+        >
+          <LogOut className="h-3 w-3 md:h-4 md:w-4" />
+        </button>
       </div>
     </header>
   );

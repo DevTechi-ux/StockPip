@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
   Building2,
   CreditCard,
   UserPlus,
+    LogOut,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -135,6 +136,7 @@ const navigationGroups = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="w-64 border-r border-border bg-card glass-effect">
@@ -177,6 +179,19 @@ export default function AdminSidebar() {
           ))}
         </div>
       </ScrollArea>
+      <div className="border-t border-border p-3">
+        <button
+          onClick={() => {
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminUser');
+            router.push('/login');
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Logout</span>
+        </button>
+      </div>
     </aside>
   );
 }

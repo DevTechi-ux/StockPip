@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { LogOut } from 'lucide-react';
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default function AdminLayout({
@@ -47,6 +48,20 @@ export default function AdminLayout({
         <AdminSidebar />
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto p-6 space-y-6">
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => {
+                  localStorage.removeItem('adminToken');
+                  localStorage.removeItem('adminUser');
+                  router.push('/login');
+                }}
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium border hover:border-foreground"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
             {children}
           </div>
         </main>
