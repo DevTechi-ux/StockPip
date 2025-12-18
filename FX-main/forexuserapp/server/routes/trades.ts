@@ -1,15 +1,13 @@
 import { RequestHandler } from "express";
 import { executeQuery } from "../database";
 import crypto from "crypto";
-
-// Commission calculation will be triggered after a close
-const { calculateIbCommission } = require('./ib');
+import { calculateIbCommission } from "./ib";
 
 // Close a position and save to database
 export const closePosition: RequestHandler = async (req, res) => {
   try {
     const { positionId, symbol, side, lot, entryPrice, exitPrice, pnl, marginUsed } = req.body;
-    const userId = req.user?.userId;
+    const userId = (req as any).user?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -21,7 +19,7 @@ export const closePosition: RequestHandler = async (req, res) => {
       [userId]
     );
 
-    if (!accountResult.success || accountResult.data.length === 0) {
+    if (!accountResult.success || !Array.isArray(accountResult.data) || accountResult.data.length === 0) {
       return res.status(404).json({ error: "Trading account not found" });
     }
 
@@ -32,7 +30,7 @@ export const closePosition: RequestHandler = async (req, res) => {
     const chargeResult = await executeQuery(
       "SELECT charge_value FROM broker_charges WHERE charge_type = 'TRADE_FEE' AND symbol = 'ALL' AND is_active = TRUE LIMIT 1"
     );
-    if (chargeResult.success && chargeResult.data.length > 0) {
+    if (chargeResult.success && Array.isArray(chargeResult.data) && chargeResult.data.length > 0) {
       brokerCharge = parseFloat(chargeResult.data[0].charge_value) || 2.5;
     }
     
@@ -70,7 +68,7 @@ export const closePosition: RequestHandler = async (req, res) => {
       [accountId]
     );
 
-    if (accountData.success && accountData.data.length > 0) {
+    if (accountData.success && Array.isArray(accountData.data) && accountData.data.length > 0) {
       const currentBalance = parseFloat(accountData.data[0].balance) || 0;
       const currentMarginUsed = parseFloat(accountData.data[0].margin_used) || 0;
       
@@ -112,10 +110,11 @@ export const closePosition: RequestHandler = async (req, res) => {
         try {
           const mockReq: any = { body: { positionId: historyId, clientId: userId, lotSize: lot, profit: pnl, spread: brokerCharge } };
           const mockRes: any = { json: () => {}, status: () => ({ json: () => {} }) };
+          const mockNext: any = () => {};
           // call asynchronously
           setImmediate(async () => {
             try {
-              await calculateIbCommission(mockReq, mockRes);
+              await calculateIbCommission(mockReq, mockRes, mockNext);
             } catch (e) {
               console.error('Error calculating IB commission (background):', e);
             }

@@ -33,7 +33,7 @@ export default function Header() {
 
   return (
     <header className="flex h-12 md:h-14 items-center gap-1 md:gap-3 border-b bg-background px-2 md:px-3">
-      <img src="/suimLogo.jpeg" alt=" StockPip" className="h-5 md:h-9 w-auto object-contain" />
+      <img src="/1.png" alt=" StockPip" className="h-5 md:h-9 w-auto object-contain" />
       {!isMobile && <div className="mx-1 md:mx-2 h-4 md:h-6 w-px bg-border" />}
       
       {/* Navigation Buttons (replaced search bar) - Hidden on mobile */}

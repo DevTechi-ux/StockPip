@@ -26,8 +26,8 @@ const HeroGoldPromotion = () => {
             </p>
 
             <div className="mt-6 flex gap-4">
-              <a href={`${DASHBOARD_URL}/login`} className="inline-block rounded-full bg-white px-6 py-[14px] text-sm font-medium text-black transition-transform duration-200 hover:scale-[1.02]">Login</a>
-              <a href={`${DASHBOARD_URL}/register`} className="inline-block rounded-full border-2 border-white px-6 py-[14px] text-sm font-medium text-white transition-transform duration-200 hover:scale-[1.02] hover:bg-white hover:text-black">Sign Up</a>
+              <a href="/login" className="inline-block rounded-full bg-white px-6 py-[14px] text-sm font-medium text-black transition-transform duration-200 hover:scale-[1.02]">Login</a>
+              <a href="register" className="inline-block rounded-full border-2 border-white px-6 py-[14px] text-sm font-medium text-white transition-transform duration-200 hover:scale-[1.02] hover:bg-white hover:text-black">Sign Up</a>
             </div>
           </div>
         </div>

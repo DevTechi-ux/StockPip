@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: " StockPip Admin Dashboard",
   description: "Forex Trading Platform Administration",
   icons: {
-    icon: '/suimLogo.jpeg',
+    icon: '/1.png',
   },
 };
 

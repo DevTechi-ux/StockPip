@@ -306,7 +306,6 @@ export default function Api() {
               </CardContent>
             </Card>
           </TabsContent>
-
           {/* Webhooks Tab */}
           <TabsContent value="webhooks" className="space-y-4">
             <Card>

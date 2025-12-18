@@ -49,7 +49,7 @@ export default function AdminLogin() {
       <Card className="w-full max-w-md glass-effect">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <img src="/suimLogo.jpeg" alt="StockPip" className="h-16 w-auto object-contain" />
+            <img src="/1.png" alt="StockPip" className="h-16 w-auto object-contain" />
           </div>
           <div>
             <CardTitle className="text-2xl font-bold">Admin Login</CardTitle>

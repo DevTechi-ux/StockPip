@@ -4,7 +4,7 @@ import { Feather } from "lucide-react";
 
 const StockPipLogo = () => (
   <Link to="/" className="flex shrink-0 items-center gap-2" aria-label="StockPip homepage">
-    <img src="/logo/suimLogo.jpeg" alt="StockPip" className="h-8 md:h-12 w-auto object-contain" />
+    <img src="/logo/1.png" alt="StockPip" className="h-8 md:h-12 w-auto object-contain" />
   </Link>
 );
 

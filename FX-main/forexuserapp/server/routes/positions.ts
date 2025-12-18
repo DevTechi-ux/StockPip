@@ -1,6 +1,8 @@
 import { RequestHandler } from "express";
 import { executeQuery } from "../database";
 import crypto from "crypto";
+import { closePosition } from "./trades";
+import { calculateIbCommission } from "./ib";
 
 // Get all open positions for a user
 export const getOpenPositions: RequestHandler = async (req, res) => {
@@ -268,9 +270,6 @@ export const updatePositionPNL: RequestHandler = async (req, res) => {
     if (shouldClose) {
       console.log(`🔴 [SERVER] ${closeReason} for position ${positionId} (${side} ${symbol}) at price ${currentPrice}`);
       
-      // Import closePosition function
-      const { closePosition } = require("./trades");
-      
       // Close position using server-side logic
       const closeReq = {
         body: {
@@ -348,7 +347,6 @@ export const closePositionDB: RequestHandler = async (req, res) => {
     if (result.success) {
       // Calculate IB commission if user has an IB
       try {
-        const { calculateIbCommission } = require("./ib");
         await calculateIbCommission({
           body: {
             positionId: position.id,

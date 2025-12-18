@@ -141,7 +141,7 @@ export default function AdminSidebar() {
   return (
     <aside className="w-64 border-r border-border bg-card glass-effect">
       <div className="flex h-16 items-center justify-center border-b border-border px-6">
-        <img src="/suimLogo.jpeg" alt="StockPip Admin" className="h-10 w-auto object-contain" />
+        <img src="/1.png" alt="StockPip Admin" className="h-10 w-auto object-contain" />
       </div>
       <ScrollArea className="h-[calc(100vh-4rem)] py-4">
         <div className="space-y-4 px-3">
